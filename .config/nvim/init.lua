@@ -1,3 +1,278 @@
+-- core settings / options
+do
+	vim.g.loaded_netrw = 1
+	vim.g.loaded_netrwPlugin = 1
+	vim.g.mapleader = " "
+	vim.g.maplocalleader = " "
+
+	vim.o.mouse = "a"
+	vim.o.confirm = true
+	vim.o.undofile = true
+
+	vim.o.number = true
+	vim.o.relativenumber = true
+
+	-- UI
+	vim.opt.termguicolors = true
+	vim.o.cursorline = true
+	vim.o.ruler = false
+	vim.o.scrolloff = 16
+	vim.o.showmode = false
+	vim.o.pumheight = 10
+	vim.o.pummaxwidth = 100
+	vim.o.signcolumn = "yes"
+	vim.o.splitright = true
+	vim.o.splitbelow = true
+
+	vim.g.have_nerd_font = true
+
+	vim.o.breakindent = true
+	vim.o.autoindent = true
+	vim.o.smartindent = true
+	vim.o.wrap = false
+
+	vim.o.expandtab = true
+	vim.o.shiftwidth = 4
+	vim.o.tabstop = 4
+
+	-- fold
+	-- see `:h fold-commands`
+	vim.o.foldlevel = 10
+	vim.o.foldmethod = "indent"
+	vim.o.foldtext = ""
+
+	-- search
+	vim.o.ignorecase = true
+	vim.o.smartcase = true
+	vim.o.incsearch = true
+end
+
+-- utils
+---@param repo string
+---@return string
+local function gh(repo)
+	return "https://github.com/taftadj/" .. repo
+end
+
+-- auto commands
+do
+	-- highlight yank
+	vim.api.nvim_create_autocmd("TextYankPost", {
+		desc = "highlight when yanking",
+		group = vim.api.nvim_create_augroup("highlight-yank", { clear = true }),
+		callback = function(_)
+			vim.hl.on_yank()
+		end,
+	})
+
+	-- on lsp attach
+	vim.api.nvim_create_autocmd("LspAttach", {
+		group = vim.api.nvim_create_augroup("lsp-attach", { clear = true }),
+		callback = function(event) end,
+	})
+end
+
+-- keymaps
+do
+	-- splits, splits navigation
+	vim.keymap.set("n", "<C-h>", "<C-w><C-h>", { desc = "move focus to the left window" })
+	vim.keymap.set("n", "<C-l>", "<C-w><C-l>", { desc = "move focus to the right window" })
+	vim.keymap.set("n", "<C-j>", "<C-w><C-j>", { desc = "move focus to the lower window" })
+	vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "move focus to the upper window" })
+end
+
+-- core & UI plugins
+do
+	-- color scheme
+	vim.pack.add({ gh("tokyonight.nvim") })
+	require("tokyonight").setup({
+		transparent = true,
+		styles = {
+			sidebars = "transparent",
+		},
+		on_highlights = function(hl, _)
+			hl.CursorLine = { bg = "none" }
+			hl.NeoTreeCursorLine = { bg = "none" }
+		end,
+	})
+	vim.cmd.colorscheme("tokyonight-night")
+
+	vim.pack.add({ gh("nvim-autopairs") })
+	require("nvim-autopairs").setup({})
+
+	vim.pack.add({ gh("gitsigns.nvim") })
+	local gitsigns = require("gitsigns")
+	gitsigns.setup({
+		signs = {
+			add = { text = "+" }, ---@diagnostic disable-line: missing-fields
+			change = { text = "~" }, ---@diagnostic disable-line: missing-fields
+			delete = { text = "_" }, ---@diagnostic disable-line: missing-fields
+			topdelete = { text = "‾" }, ---@diagnostic disable-line: missing-fields
+			changedelete = { text = "~" }, ---@diagnostic disable-line: missing-fields
+		},
+	})
+end
+
+-- file explorer
+do
+	vim.pack.add({
+		{ src = gh("neo-tree.nvim"), version = vim.version.range("*") },
+		gh("plenary.nvim"),
+		gh("nui.nvim"),
+		gh("nvim-web-devicons"),
+	})
+	vim.keymap.set("n", "<leader>e", "<Cmd>Neotree reveal<CR>", { desc = "NeoTree reveal", silent = true })
+
+	require("neo-tree").setup({
+		close_if_last_window = true,
+		default_component_configs = {
+			git_status = {
+				symbols = {
+					added = "✚",
+					modified = "",
+					deleted = "✖",
+					renamed = "󰁕",
+					untracked = "",
+					ignored = "",
+					unstaged = "󰄱",
+					staged = "",
+					conflict = "",
+				},
+			},
+			icon = {
+				folder_closed = "",
+				folder_open = "",
+				folder_empty = "󰜌",
+			},
+		},
+		window = {
+			-- position = "right",
+			width = 40,
+			auto_expand_width = true,
+			mappings = {
+				["O"] = {
+					function(state)
+						local node = state.tree:get_node()
+						local path = node:get_id()
+						if vim.ui.open then
+							vim.ui.open(path)
+						end
+					end,
+					desc = "Open with system default app",
+				},
+			},
+		},
+	})
+end
+
+-- language server protocol
+do
+	vim.pack.add({
+		gh("nvim-lspconfig"),
+		gh("mason.nvim"),
+		gh("mason-lspconfig.nvim"),
+		gh("mason-tool-installer.nvim"),
+	})
+
+	local servers = {
+		stylua = {},
+		lua_ls = {
+			settings = {
+				Lua = {
+					runtime = {
+						version = "LuaJIT",
+					},
+					format = { enable = false },
+					workspace = {
+						checkThirdParty = false,
+						library = {
+							vim.env.VIMRUNTIME,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	require("mason").setup({})
+	require("mason-lspconfig").setup({
+		automatic_enable = false,
+	})
+
+	local ensure_installed = vim.tbl_keys(servers or {})
+	require("mason-tool-installer").setup({ ensure_installed = ensure_installed })
+
+	for name, server in pairs(servers) do
+		vim.lsp.config(name, server)
+		vim.lsp.enable(name)
+	end
+end
+
+-- diagnostic
+do
+	vim.diagnostic.config({
+		virtual_text = true,
+		virtual_lines = false,
+		signs = {
+			text = {
+				[vim.diagnostic.severity.ERROR] = "",
+				[vim.diagnostic.severity.WARN] = "",
+				[vim.diagnostic.severity.INFO] = "",
+				[vim.diagnostic.severity.HINT] = "󰌵",
+			},
+		},
+	})
+end
+
+-- format
+do
+	vim.pack.add({ gh("conform.nvim") })
+	require("conform").setup({
+		format_on_save = function(bufnr)
+			local enabled_filetypes = {
+				lua = true,
+			}
+
+			if not enabled_filetypes[vim.bo[bufnr].filetype] then
+				return nil
+			end
+
+			return { timeout_ms = 500 }
+		end,
+		default_format_opts = {
+			lsp_format = "fallback",
+		},
+		formatters_by_ft = {
+			lua = { "stylua" },
+		},
+	})
+	vim.keymap.set("n", "<leader>f", function()
+		require("conform").format({ async = true })
+	end, { desc = "format buffer" })
+end
+
+-- completion
+do
+	vim.pack.add({ { src = gh("blink.cmp"), version = vim.version.range("1.*") } })
+	require("blink.cmp").setup({
+		keymap = {
+			preset = "default",
+		},
+		appearance = {
+			nerd_font_variant = "mono",
+		},
+		completion = {
+			documentation = { auto_show = false, auto_show_delay_ms = 500 },
+		},
+		sources = {
+			default = { "lsp" },
+		},
+		signature = { enabled = true },
+	})
+end
+
+--====================================================
+
 -- DONE: install tree-sitter-cli
 
 -- == file explorer
@@ -6,9 +281,10 @@
 
 -- == independant keys
 -- easy insert of `,;`
+-- better escape
 -- DONE: yank / paste
 -- save / quit / close buffers
--- fold / unfold
+-- DONE: fold (`zM` fold all) / unfold (`zR` unfold all, `zA` unfold under cursor)
 -- DONE: undo (`u`, `U` for all changes on a line) / redo (`ctrl r`)
 -- DONE: repeat last command `.`
 -- ?? open nvim config from anywhere
@@ -30,13 +306,7 @@
 -- == run shell commands
 -- DONE: use `:! commands args`
 
--- == auto commands
--- highlight on yank
-
 -- == options
--- line number & relative number
--- syntax highlighting
--- search options(ignore case, case sensitivity, smart seach)
 -- ?? set matching bracket
 
 -- == fuzzy find
@@ -45,9 +315,9 @@
 -- ?? symbols
 
 -- == language server protocol
--- hover information
+-- DONE: use `K` on any word to see documentation
 -- key: rename
--- diagnostics
+-- DONE: diagnostics
 -- key: code actions
 -- functions signature
 -- ?? go to definition
@@ -56,17 +326,14 @@
 -- ?? find symbols
 -- ?? find references
 
--- == format
--- key: format manually
--- format on save
-
 -- == diagnostics
 -- key: jump between errors / warning
 
 -- == completion
--- key: next (`ctrl n`) / previous (`ctrl p`)
--- key: complete / confirm
--- key: show docs
+-- DONE: next (`ctrl n`) / previous (`ctrl p`)
+-- DONE: complete / confirm (`<C-y>`)
+-- DONE: cancel (`<C-e>`)
+-- key: show (or auto show) / hide docs
 -- key: scroll docs
 
 -- == file / buffers navigation
@@ -75,7 +342,7 @@
 
 -- == splits
 -- key: splits
--- key: navigation between splits
+-- DONE: navigation between splits
 -- key: close split
 
 -- == git
@@ -84,7 +351,7 @@
 -- ?? run git commands
 
 -- == color scheme
--- transparent background
+-- DONE: transparent background
 
 -- == code understanding
 -- use treesitter plugin
@@ -93,14 +360,13 @@
 -- DONE: use `rm -rf ~/.local/share/nvim ~/.local/state/nvim ~/.cache/nvim`
 
 -- == how to get help
--- DONE: use `K` on any word to see documentation
 -- DONE: `:help` or `:h`
 
 -- == supported languages
 -- ?? bash
 -- C / C++
 -- dart / flutter
--- lua
+-- DONE: lua
 -- PHP
 -- python
 
