@@ -1,3 +1,51 @@
+-- pre-requisite
+-- DONE: install tree-sitter-cli
+
+-- clear neovim cache
+-- DONE: use `rm -rf ~/.local/share/nvim ~/.local/state/nvim ~/.cache/nvim`
+
+-- how to get help
+-- DONE: `:help` or `:h`
+
+-- supported languages
+-- ?? bash
+-- C / C++
+-- dart / flutter
+-- DONE: lua
+-- PHP
+-- python
+
+-- operators
+-- `c` for changing
+-- `y` for yanking
+-- `p` for pasting after cursor
+-- `P` for pasting before cursor
+-- `d` for delete
+-- `x` for delete character under cursor
+-- `X` for delete character before cursor
+-- `r` for replace character under cursor
+-- `R` for repace successive characters
+-- `f` for find
+
+-- motions
+-- `e` till the end of word under cursor
+-- `$` for end of line
+-- `0` for start of line
+-- `^` for first character of the line
+-- `l` for character
+-- `%` find matching parenthesis
+-- `t` for till
+-- `i` for inside
+
+-- moves
+-- `w` next word
+-- `W` next word with space as separator
+-- `G` bottom of file
+-- `[count]G` jump to exact line
+-- `ctrl u` half page up
+-- `ctrl d` half page down
+-- `ctrl o` / `ctrl i` to go back / forward in neovim documentation
+
 -- core settings / options
 do
 	vim.g.loaded_netrw = 1
@@ -18,7 +66,7 @@ do
 	vim.o.ruler = false
 	vim.o.scrolloff = 16
 	vim.o.showmode = false
-	vim.o.pumheight = 10
+	vim.o.pumheight = 100
 	vim.o.pummaxwidth = 100
 	vim.o.signcolumn = "yes"
 	vim.o.splitright = true
@@ -45,6 +93,8 @@ do
 	vim.o.ignorecase = true
 	vim.o.smartcase = true
 	vim.o.incsearch = true
+
+	-- ?? set matching bracket
 end
 
 -- utils
@@ -75,15 +125,45 @@ end
 -- keymaps
 do
 	-- splits, splits navigation
+	-- key: splits
+	-- key: close split
+	-- navigation between splits
 	vim.keymap.set("n", "<C-h>", "<C-w><C-h>", { desc = "move focus to the left window" })
 	vim.keymap.set("n", "<C-l>", "<C-w><C-l>", { desc = "move focus to the right window" })
 	vim.keymap.set("n", "<C-j>", "<C-w><C-j>", { desc = "move focus to the lower window" })
 	vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "move focus to the upper window" })
+
+	-- easy insert of `,;`
+	-- better escape
+	-- DONE: yank / paste
+	-- save / quit / close buffers
+	-- DONE: fold (`zM` fold all) / unfold (`zR` unfold all, `zA` unfold under cursor)
+	-- DONE: undo (`u`, `U` for all changes on a line) / redo (`ctrl r`)
+	-- DONE: repeat last command `.`
+	-- ?? open nvim config from anywhere
+
+	-- == search & replace
+	-- disable search highlight
+	-- DONE: `/searchTerm` to search forward
+	-- DONE: `/searchTerm\c` case insensitive search forward
+	-- DONE: `?searchTerm` to search backward
+	-- DONE: `n` next occurrence
+	-- DONE: `N` previous occurrence
+	-- DONE: `*` search term under cursor
+	-- DONE:     can be paired with `:%s//newTerm/g` to replace all
+	-- DONE: `:nohlsearch` clear highlight
+	-- DONE: `:s/old/new` to search & replace on one line
+	-- DONE: `:s/old/new/g` to search & replace all occurrence on one line
+	-- DONE: `:#,#s/old/new/g` to search & replace all occurrence between 2 lines
+
+	-- == run shell commands
+	-- DONE: use `:! commands args`
 end
 
 -- core & UI plugins
 do
 	-- color scheme
+	-- DONE: transparent background
 	vim.pack.add({ gh("tokyonight.nvim") })
 	require("tokyonight").setup({
 		transparent = true,
@@ -97,9 +177,17 @@ do
 	})
 	vim.cmd.colorscheme("tokyonight-night")
 
+	-- code understanding
+	-- use treesitter plugin
+
+	-- auto pairs
 	vim.pack.add({ gh("nvim-autopairs") })
 	require("nvim-autopairs").setup({})
 
+	-- git
+	-- key: jump between changes
+	-- key: revert changes
+	-- ?? run git commands
 	vim.pack.add({ gh("gitsigns.nvim") })
 	local gitsigns = require("gitsigns")
 	gitsigns.setup({
@@ -111,9 +199,15 @@ do
 			changedelete = { text = "~" }, ---@diagnostic disable-line: missing-fields
 		},
 	})
+
+	-- file / buffers navigation
+	-- key: next / previous buffers
+	-- ?? work with harpoon
 end
 
 -- file explorer
+-- key: toggle file explorer
+-- ?? open at current file
 do
 	vim.pack.add({
 		{ src = gh("neo-tree.nvim"), version = vim.version.range("*") },
@@ -206,6 +300,17 @@ do
 		vim.lsp.config(name, server)
 		vim.lsp.enable(name)
 	end
+
+	-- DONE: use `K` on any word to see documentation
+	-- key: rename
+	-- DONE: diagnostics
+	-- key: code actions
+	-- functions signature
+	-- ?? go to definition
+	-- ?? go to declaration
+	-- ?? go to implementation
+	-- ?? find symbols
+	-- ?? find references
 end
 
 -- diagnostic
@@ -222,6 +327,8 @@ do
 			},
 		},
 	})
+
+	-- key: jump between errors / warning
 end
 
 -- format
@@ -252,7 +359,14 @@ do
 end
 
 -- completion
+-- TODO: remove this plugin as i only need to use lsp completion
 do
+	-- DONE: next (`ctrl n`) / previous (`ctrl p`)
+	-- DONE: complete / confirm (`<C-y>`)
+	-- DONE: cancel (`<C-e>`)
+	-- key: show (or auto show) / hide docs
+	-- key: scroll docs
+
 	vim.pack.add({ { src = gh("blink.cmp"), version = vim.version.range("1.*") } })
 	require("blink.cmp").setup({
 		keymap = {
@@ -273,134 +387,11 @@ end
 
 --====================================================
 
--- DONE: install tree-sitter-cli
-
--- == file explorer
--- key: toggle file explorer
--- ?? open at current file
-
--- == independant keys
--- easy insert of `,;`
--- better escape
--- DONE: yank / paste
--- save / quit / close buffers
--- DONE: fold (`zM` fold all) / unfold (`zR` unfold all, `zA` unfold under cursor)
--- DONE: undo (`u`, `U` for all changes on a line) / redo (`ctrl r`)
--- DONE: repeat last command `.`
--- ?? open nvim config from anywhere
-
--- == search & replace
--- disable search highlight
--- DONE: `/searchTerm` to search forward
--- DONE: `/searchTerm\c` case insensitive search forward
--- DONE: `?searchTerm` to search backward
--- DONE: `n` next occurrence
--- DONE: `N` previous occurrence
--- DONE: `*` search term under cursor
--- DONE:     can be paired with `:%s//newTerm/g` to replace all
--- DONE: `:nohlsearch` clear highlight
--- DONE: `:s/old/new` to search & replace on one line
--- DONE: `:s/old/new/g` to search & replace all occurrence on one line
--- DONE: `:#,#s/old/new/g` to search & replace all occurrence between 2 lines
-
--- == run shell commands
--- DONE: use `:! commands args`
-
--- == options
--- ?? set matching bracket
-
 -- == fuzzy find
--- key: find text under cursor
--- key: find files
+-- ?? find text under cursor
+-- ?? find files
+
 -- ?? symbols
-
--- == language server protocol
--- DONE: use `K` on any word to see documentation
--- key: rename
--- DONE: diagnostics
--- key: code actions
--- functions signature
--- ?? go to definition
--- ?? go to declaration
--- ?? go to implementation
--- ?? find symbols
--- ?? find references
-
--- == diagnostics
--- key: jump between errors / warning
-
--- == completion
--- DONE: next (`ctrl n`) / previous (`ctrl p`)
--- DONE: complete / confirm (`<C-y>`)
--- DONE: cancel (`<C-e>`)
--- key: show (or auto show) / hide docs
--- key: scroll docs
-
--- == file / buffers navigation
--- key: next / previous buffers
--- ?? work with harpoon
-
--- == splits
--- key: splits
--- DONE: navigation between splits
--- key: close split
-
--- == git
--- key: jump between changes
--- key: revert changes
--- ?? run git commands
-
--- == color scheme
--- DONE: transparent background
-
--- == code understanding
--- use treesitter plugin
-
--- == clear neovim cache
--- DONE: use `rm -rf ~/.local/share/nvim ~/.local/state/nvim ~/.cache/nvim`
-
--- == how to get help
--- DONE: `:help` or `:h`
-
--- == supported languages
--- ?? bash
--- C / C++
--- dart / flutter
--- DONE: lua
--- PHP
--- python
-
--- == operators
--- `c` for changing
--- `y` for yanking
--- `p` for pasting after cursor
--- `P` for pasting before cursor
--- `d` for delete
--- `x` for delete character under cursor
--- `X` for delete character before cursor
--- `r` for replace character under cursor
--- `R` for repace successive characters
--- `f` for find
-
--- == motions
--- `e` till the end of word under cursor
--- `$` for end of line
--- `0` for start of line
--- `^` for first character of the line
--- `l` for character
--- `%` find matching parenthesis
--- `t` for till
--- `i` for inside
-
--- == moves
--- `w` next word
--- `W` next word with space as separator
--- `G` bottom of file
--- `[count]G` jump to exact line
--- `ctrl u` half page up
--- `ctrl d` half page down
--- `ctrl o` / `ctrl i` to go back / forward in neovim documentation
-
 -- ?? snippets
 -- ?? dap
 -- ?? tmux
