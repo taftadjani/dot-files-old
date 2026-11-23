@@ -42,6 +42,10 @@
       "rev": "4648fd8ba5c678d7e2db75ae44ffac269bb589d8",
       "src": "https://github.com/taftadj/nvim-lspconfig"
     },
+    "nvim-treesitter": {
+      "rev": "52773f0d13a0c11d0c3ef33c14ab6ecc1c17148b",
+      "src": "https://github.com/taftadj/nvim-treesitter"
+    },
     "nvim-web-devicons": {
       "rev": "0dc0cfb0c6858041174a53c7aa4adaf65e994b3c",
       "src": "https://github.com/taftadj/nvim-web-devicons"

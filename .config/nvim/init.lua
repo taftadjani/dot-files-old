@@ -60,12 +60,16 @@ do
 	vim.o.number = true
 	vim.o.relativenumber = true
 
+	-- completion
+	-- vim.o.completeopt = "menu,noinsert,popup" -- no visible effect
+
 	-- UI
 	vim.opt.termguicolors = true
 	vim.o.cursorline = true
 	vim.o.ruler = false
-	vim.o.scrolloff = 16
+	vim.o.scrolloff = 8
 	vim.o.showmode = false
+	vim.o.winborder = "rounded"
 	vim.o.pumheight = 100
 	vim.o.pummaxwidth = 100
 	vim.o.signcolumn = "yes"
@@ -86,7 +90,7 @@ do
 	-- fold
 	-- see `:h fold-commands`
 	vim.o.foldlevel = 10
-	vim.o.foldmethod = "indent"
+	-- vim.o.foldmethod = "indent"
 	vim.o.foldtext = ""
 
 	-- search
@@ -104,13 +108,17 @@ local function gh(repo)
 	return "https://github.com/taftadj/" .. repo
 end
 
+-- treesitter language parser
+-- see `:help treesitter-highlight` and `:checkhealth nvim-treesitter`
+local ts_langs = { "lua" }
+
 -- auto commands
 do
 	-- highlight yank
 	vim.api.nvim_create_autocmd("TextYankPost", {
 		desc = "highlight when yanking",
 		group = vim.api.nvim_create_augroup("highlight-yank", { clear = true }),
-		callback = function(_)
+		callback = function()
 			vim.hl.on_yank()
 		end,
 	})
@@ -118,7 +126,31 @@ do
 	-- on lsp attach
 	vim.api.nvim_create_autocmd("LspAttach", {
 		group = vim.api.nvim_create_augroup("lsp-attach", { clear = true }),
-		callback = function(event) end,
+		callback = function() end,
+	})
+
+	-- treesitter update
+	vim.api.nvim_create_autocmd("PackChanged", {
+		desc = "update parsers when nvim-treesitter is updated",
+		group = vim.api.nvim_create_augroup("treesitter-update", { clear = true }),
+		callback = function(ev)
+			if ev.data.spec.name == "nvim-treesitter" and ev.data.kind == "update" then
+				vim.cmd("TSUpdate")
+			end
+		end,
+	})
+
+	-- treesitter activation
+	vim.api.nvim_create_autocmd("FileType", {
+		desc = "treesitter highlighting for the installed parsers",
+		group = vim.api.nvim_create_augroup("treesitter-start", { clear = true }),
+		pattern = vim.iter(ts_langs):map(vim.treesitter.language.get_filetypes):flatten():totable(),
+		callback = function()
+			if pcall(vim.treesitter.start) then
+				vim.wo[0][0].foldexpr = "v:lua.vim.treesitter.foldexpr()"
+				vim.wo[0][0].foldmethod = "expr"
+			end
+		end,
 	})
 end
 
@@ -133,11 +165,26 @@ do
 	vim.keymap.set("n", "<C-j>", "<C-w><C-j>", { desc = "move focus to the lower window" })
 	vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "move focus to the upper window" })
 
+	-- save all buffer
+	vim.keymap.set("n", "<leader>s", ":wa<cr>", { desc = "save all changed buffers" })
+
+	-- keep cursor centered while navigating insearch
+	vim.keymap.set("n", "n", "nzz", { desc = "" })
+	vim.keymap.set("n", "N", "Nzz", { desc = "" })
+
+	-- easy scroll
+	vim.keymap.set("n", "<Up>", "<C-y>", { desc = "" })
+	vim.keymap.set("n", "<Down>", "<C-e>", { desc = "" })
+
+	-- clear search highlight
+	vim.keymap.set("n", "<Esc>", ":nohlsearch<cr>", { desc = "clear search highlight", silent = true })
+
 	-- easy insert of `,;`
 	-- better escape
-	-- DONE: yank / paste
-	-- save / quit / close buffers
-	-- DONE: fold (`zM` fold all) / unfold (`zR` unfold all, `zA` unfold under cursor)
+	-- DONE: yank `y` / paste `p` or `P`
+	-- DONE: save `leader s` / quit `shift zz` / close buffers
+	-- switch lines
+	-- DONE: fold (`zM` fold all) / unfold (`zR` unfold all, `zA` unfold under cursor) / toggle fold (`za`)
 	-- DONE: undo (`u`, `U` for all changes on a line) / redo (`ctrl r`)
 	-- DONE: repeat last command `.`
 	-- ?? open nvim config from anywhere
@@ -178,7 +225,12 @@ do
 	vim.cmd.colorscheme("tokyonight-night")
 
 	-- code understanding
-	-- use treesitter plugin
+	-- use :InspectTree
+	vim.pack.add({ gh("nvim-treesitter") })
+	local ts_ok, ts = pcall(require, "nvim-treesitter")
+	if ts_ok then
+		ts.install(ts_langs)
+	end
 
 	-- auto pairs
 	vim.pack.add({ gh("nvim-autopairs") })
@@ -359,7 +411,6 @@ do
 end
 
 -- completion
--- TODO: remove this plugin as i only need to use lsp completion
 do
 	-- DONE: next (`ctrl n`) / previous (`ctrl p`)
 	-- DONE: complete / confirm (`<C-y>`)
@@ -376,7 +427,7 @@ do
 			nerd_font_variant = "mono",
 		},
 		completion = {
-			documentation = { auto_show = false, auto_show_delay_ms = 500 },
+			documentation = { auto_show = true, auto_show_delay_ms = 1000 },
 		},
 		sources = {
 			default = { "lsp" },
@@ -400,3 +451,4 @@ end
 -- ?? linting
 -- ?? how to use quickfix list
 -- ?? what & how to use operators / motions / modes / text, object / register / macros
+-- ?? status line
