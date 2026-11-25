@@ -9,6 +9,10 @@
       "rev": "016802de402556da54c36bd7359b441266b01cdd",
       "src": "https://github.com/taftadj/conform.nvim"
     },
+    "flutter-tools.nvim": {
+      "rev": "0ff50ae646599788c71779ffa47ce46350a35724",
+      "src": "https://github.com/taftadj/flutter-tools.nvim"
+    },
     "gitsigns.nvim": {
       "rev": "c0862d382a35b7b45757d8d151a6a634c09bf3ce",
       "src": "https://github.com/taftadj/gitsigns.nvim"
@@ -53,6 +57,10 @@
     "plenary.nvim": {
       "rev": "74b06c6c75e4eeb3108ec01852001636d85a932b",
       "src": "https://github.com/taftadj/plenary.nvim"
+    },
+    "telescope.nvim": {
+      "rev": "1e1bab730218eaf97fce743be3f56e51075928ac",
+      "src": "https://github.com/taftadj/telescope.nvim"
     },
     "tokyonight.nvim": {
       "rev": "cdc07ac78467a233fd62c493de29a17e0cf2b2b6",

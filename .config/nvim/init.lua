@@ -7,13 +7,15 @@
 -- how to get help
 -- DONE: `:help` or `:h`
 
--- supported languages
+-- supported languages: lsp, parser for treesitter
 -- ?? bash
 -- C / C++
--- dart / flutter
+-- DONE: dart / flutter
 -- DONE: lua
 -- PHP
--- python
+-- ?? python
+-- ?? tailwind css
+-- ?? laravel
 
 -- operators
 -- `c` for changing
@@ -60,9 +62,6 @@ do
 	vim.o.number = true
 	vim.o.relativenumber = true
 
-	-- completion
-	-- vim.o.completeopt = "menu,noinsert,popup" -- no visible effect
-
 	-- UI
 	vim.opt.termguicolors = true
 	vim.o.cursorline = true
@@ -73,6 +72,7 @@ do
 	vim.o.pumheight = 100
 	vim.o.pummaxwidth = 100
 	vim.o.signcolumn = "yes"
+
 	vim.o.splitright = true
 	vim.o.splitbelow = true
 
@@ -86,6 +86,7 @@ do
 	vim.o.expandtab = true
 	vim.o.shiftwidth = 4
 	vim.o.tabstop = 4
+	vim.o.timeoutlen = 300
 
 	-- fold
 	-- see `:h fold-commands`
@@ -157,16 +158,21 @@ end
 -- keymaps
 do
 	-- splits, splits navigation
-	-- key: splits
-	-- key: close split
-	-- navigation between splits
+	-- DONE: splits
+	vim.keymap.set("n", "<leader>sh", ":split<cr>", { desc = "split horizontally", silent = true })
+	vim.keymap.set("n", "<leader>sv", ":vsplit<cr>", { desc = "split vertically", silent = true })
+	-- DONE: close split `ctrl zz` or `leader q`
+	-- DONE: navigation between splits
 	vim.keymap.set("n", "<C-h>", "<C-w><C-h>", { desc = "move focus to the left window" })
 	vim.keymap.set("n", "<C-l>", "<C-w><C-l>", { desc = "move focus to the right window" })
 	vim.keymap.set("n", "<C-j>", "<C-w><C-j>", { desc = "move focus to the lower window" })
 	vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "move focus to the upper window" })
 
 	-- save all buffer
-	vim.keymap.set("n", "<leader>s", ":wa<cr>", { desc = "save all changed buffers" })
+	vim.keymap.set("n", "<leader>s", ":wa<cr>", { desc = "save all changed buffers", silent = true })
+
+	-- quit buffer, split
+	vim.keymap.set("n", "<leader>q", "<S-z><S-z>", { desc = "quit buffers, split screen", silent = true })
 
 	-- keep cursor centered while navigating insearch
 	vim.keymap.set("n", "n", "nzz", { desc = "" })
@@ -179,8 +185,21 @@ do
 	-- clear search highlight
 	vim.keymap.set("n", "<Esc>", ":nohlsearch<cr>", { desc = "clear search highlight", silent = true })
 
-	-- easy insert of `,;`
+	-- insert mode navigation
+	vim.keymap.set("i", "<C-b>", "<esc>^i", { desc = "move beginning of line" })
+	vim.keymap.set("i", "<C-e>", "<End>", { desc = "move end of line" })
+	vim.keymap.set("i", "<C-h>", "<Left>", { desc = "move left" })
+	vim.keymap.set("i", "<C-l>", "<Right>", { desc = "move right" })
+	vim.keymap.set("i", "<C-j>", "<Down>", { desc = "move down" })
+	-- vim.keymap.set("i", "<C-k>", "<Up>", { desc = "move up" }) -- K is used for documentation
+
 	-- better escape
+	vim.keymap.set("i", "jk", "<esc>", { desc = "better escape" })
+
+	-- easy insert of `,;`
+	vim.keymap.set("i", ",,", "<esc>A,<esc>^", { desc = "insert , at the end of line" })
+	vim.keymap.set("i", ";;", "<esc>A;<esc>^", { desc = "insert ; at the end of line" })
+
 	-- DONE: yank `y` / paste `p` or `P`
 	-- DONE: save `leader s` / quit `shift zz` / close buffers
 	-- switch lines
@@ -190,7 +209,7 @@ do
 	-- ?? open nvim config from anywhere
 
 	-- == search & replace
-	-- disable search highlight
+	-- DONE: disable search highlight
 	-- DONE: `/searchTerm` to search forward
 	-- DONE: `/searchTerm\c` case insensitive search forward
 	-- DONE: `?searchTerm` to search backward
@@ -291,8 +310,16 @@ do
 				folder_empty = "󰜌",
 			},
 		},
+		filesystem = {
+			filtered_items = {
+				visible = true,
+				hide_dotfiles = false,
+				hide_gitignored = false,
+				hide_hidden = false,
+			},
+		},
 		window = {
-			-- position = "right",
+			position = "right",
 			width = 40,
 			auto_expand_width = true,
 			mappings = {
@@ -320,6 +347,7 @@ do
 		gh("mason-tool-installer.nvim"),
 	})
 
+	-- see https://github.com/neovim/nvim-lspconfig/blob/master/doc/configs.md
 	local servers = {
 		stylua = {},
 		lua_ls = {
@@ -355,7 +383,6 @@ do
 
 	-- DONE: use `K` on any word to see documentation
 	-- key: rename
-	-- DONE: diagnostics
 	-- key: code actions
 	-- functions signature
 	-- ?? go to definition
@@ -363,6 +390,11 @@ do
 	-- ?? go to implementation
 	-- ?? find symbols
 	-- ?? find references
+
+	-- dart / flutter lsp
+	-- see https://github.com/taftadj/flutter-tools.nvim
+	-- vim.pack.add({ gh("flutter-tools.nvim") })
+	-- require("flutter-tools").setup({})
 end
 
 -- diagnostic
@@ -411,17 +443,20 @@ do
 end
 
 -- completion
+-- use `:h blink-cmp-config-keymap`
 do
 	-- DONE: next (`ctrl n`) / previous (`ctrl p`)
 	-- DONE: complete / confirm (`<C-y>`)
 	-- DONE: cancel (`<C-e>`)
-	-- key: show (or auto show) / hide docs
-	-- key: scroll docs
+	-- DONE: show (or auto show) / hide docs / toggle `ctrl d`
+	-- DONE: scroll docs up `ctrl b` / down `ctrl f`
+	-- DONE: show / hide signature / toggle `ctrl k`
 
 	vim.pack.add({ { src = gh("blink.cmp"), version = vim.version.range("1.*") } })
 	require("blink.cmp").setup({
 		keymap = {
 			preset = "default",
+			["<C-@>"] = { "show", "show_documentation", "hide_documentation" },
 		},
 		appearance = {
 			nerd_font_variant = "mono",
@@ -436,11 +471,30 @@ do
 	})
 end
 
+-- snippets
+do
+	-- DONE: next `tab` / previous `shift tab` insert zone
+	-- these keys don't work after you reach the end
+end
+
 --====================================================
 
--- == fuzzy find
+-- ?? fuzzy find
 -- ?? find text under cursor
 -- ?? find files
+-- do
+-- 	vim.pack.add({ gh("telescope.nvim") })
+-- 	require("telescope").setup({
+-- 		pickers = {
+-- 			find_files = {
+-- 				-- theme = "dropdown",
+-- 			},
+-- 		},
+-- 	})
+-- 	local builtin = require("telescope.builtin")
+-- 	vim.keymap.set("n", "<leader>ff", builtin.find_files, { desc = "telescope find files" })
+-- 	require("telescope").load_extension("flutter")
+-- end
 
 -- ?? symbols
 -- ?? snippets
